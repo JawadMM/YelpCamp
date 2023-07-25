@@ -3,10 +3,10 @@ const path = require("path");
 const mongoose = require("mongoose");
 const ejsMate = require("ejs-mate");
 const methodOverride = require("method-override");
-const joi = require("joi");
 const Campground = require("./models/campground");
 const catchAsync = require("./utilities/catchAsync");
 const ExpressError = require("./utilities/ExpressError");
+const { campgroundSchema } = require("./schemas");
 
 mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
 
@@ -26,8 +26,14 @@ app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 
 const validateCampground = (req, res, next) => {
-  
-}
+  const { error } = campgroundSchema.validate(req.body);
+  if (error) {
+    const msg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(msg, 400);
+  } else {
+    next();
+  }
+};
 
 app.get("/", (req, res) => {
   res.render("home");
@@ -63,26 +69,8 @@ app.get(
 
 app.post(
   "/campgrounds",
+  validateCampground,
   catchAsync(async (req, res, next) => {
-    // if (!req.body.campground)
-    //   throw new ExpressError("Invalid Campground Data", 400);
-    const campgroundSchema = joi.object({
-      campground: joi
-        .object({
-          title: joi.string().required(),
-          price: joi.number().required().min(0),
-          Image: joi.string().required(),
-          location: joi.string().required(),
-          description: joi.string().required(),
-        })
-        .required(),
-    });
-
-    const { error } = campgroundSchema.validate(req.body);
-    if (error) {
-      const msg = error.details.map((el) => el.message).join(",");
-      throw new ExpressError(msg, 400);
-    }
     const newCampground = new Campground(req.body.campground);
     await newCampground.save();
     res.redirect(`/campgrounds/${newCampground._id}`);
@@ -91,6 +79,7 @@ app.post(
 
 app.put(
   "/campgrounds/:id",
+  validateCampground,
   catchAsync(async (req, res) => {
     const { id } = req.params;
     const campground = await Campground.findByIdAndUpdate(id, {
