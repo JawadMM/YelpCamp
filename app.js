@@ -8,6 +8,7 @@ const Review = require("./models/review");
 const catchAsync = require("./utilities/catchAsync");
 const ExpressError = require("./utilities/ExpressError");
 const { campgroundSchema, reviewSchema } = require("./schemas");
+const campground = require("./models/campground");
 
 mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
 
@@ -73,7 +74,9 @@ app.get(
 app.get(
   "/campgrounds/:id",
   catchAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id);
+    const campground = await Campground.findById(req.params.id).populate(
+      "reviews"
+    );
     res.render("campgrounds/show", { campground });
   })
 );
@@ -119,6 +122,16 @@ app.post(
     await campground.save();
     await review.save();
     res.redirect(`/campgrounds/${campground._id}`);
+  })
+);
+
+app.delete(
+  "/campgrounds/:id/reviews/:reviewId",
+  catchAsync(async (req, res) => {
+    const { id, reviewId } = req.params;
+    await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/campgrounds/${id}`);
   })
 );
 
