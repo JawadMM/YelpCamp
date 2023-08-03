@@ -14,7 +14,9 @@
   </head>
   <body class="d-flex flex-column vh-100">
     <%- include("../partials/navbar") %>
-    <main class="container mt-5"><%- body %></main>
+    <main class="container mt-5">
+      <%- include("../partials/flash") %> <%- body %>
+    </main>
     <script
       src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
       integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
@@ -27,23 +29,6 @@
     ></script>
     <%- include("../partials/footer") %>
 
-    <script>
-      (() => {
-  'use strict'
-
-  const forms = document.querySelectorAll('.validated-form')
-
-  Array.from(forms).forEach(form => {
-    form.addEventListener('submit', event => {
-      if (!form.checkValidity()) {
-        event.preventDefault()
-        event.stopPropagation()
-      }
-
-      form.classList.add('was-validated')
-    }, false)
-  })
-})()
-    </script>
+    <script src="/javascripts/validateForms.js"></script>
   </body>
 </html>
