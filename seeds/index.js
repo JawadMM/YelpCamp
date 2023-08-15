@@ -26,7 +26,16 @@ const seedDB = async () => {
         cities[randomItem(cities)].state
       }`,
       title: `${sample(descriptors)} ${sample(places)}`,
-      image: images[randomItem(images)].urls.regular,
+      images:  [
+        {
+          url: 'https://res.cloudinary.com/doixzlwq0/image/upload/v1692106612/YelpCamp/xyessiilunpq2e1pcx4w.jpg',
+          filename: 'YelpCamp/xyessiilunpq2e1pcx4w',
+        },
+        {
+          url: 'https://res.cloudinary.com/doixzlwq0/image/upload/v1692106614/YelpCamp/d9scyuymy7pzgvwoch5x.jpg',
+          filename: 'YelpCamp/d9scyuymy7pzgvwoch5x',
+        }
+      ],
       description:
         "Velit est excepteur excepteur eiusmod consequat ea ipsum mollit occaecat ex sint in minim quis. Est ipsum enim do pariatur do aliquip cupidatat. Quis esse Lorem consectetur eiusmod nisi occaecat dolor dolor do. Est elit velit culpa ex occaecat in ut. Dolor duis mollit consequat culpa voluptate. Sit consequat eu exercitation eiusmod adipisicing amet.",
       price: randomPrice,
