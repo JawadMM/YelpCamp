@@ -5,7 +5,7 @@ if (process.env.NODE_ENV !== "production") {
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-const mongoSanitize = require("express-mongo-sanitize")
+const mongoSanitize = require("express-mongo-sanitize");
 const ejsMate = require("ejs-mate");
 const methodOverride = require("method-override");
 const ExpressError = require("./utilities/ExpressError");
@@ -14,13 +14,35 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const passportLocal = require("passport-local");
 const User = require("./models/user");
-const helmet = require("helmet")
+const helmet = require("helmet");
+const MongoStore = require("connect-mongo");
+const dbUrl = process.env.DB_URL || "mongodb://127.0.0.1:27017/yelp-camp";
 
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
 const userRoutes = require("./routes/users");
 
-mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
+//"mongodb://127.0.0.1:27017/yelp-camp"
+
+const secret = process.env.SECRET || "thisshouldbeabettersecret!";
+const store = MongoStore.create({
+  mongoUrl: dbUrl,
+  touchAfter: 24 * 60 * 60,
+  crypto: {
+    secret,
+  },
+});
+
+store.on("error", function(error) {
+  console.log("Session Store Error", error)
+})
+
+mongoose.connect(dbUrl, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+});
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "Connection error:"));
@@ -33,7 +55,7 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(mongoSanitize())
+app.use(mongoSanitize());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
@@ -41,7 +63,7 @@ app.engine("ejs", ejsMate);
 
 const sessionConfig = {
   name: "session",
-  secret: "hey",
+  secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -54,7 +76,7 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 app.use(flash());
-app.use(helmet())
+app.use(helmet());
 
 const scriptSrcUrls = [
   "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js",
@@ -68,7 +90,6 @@ const scriptSrcUrls = [
   "https://cdn.jsdelivr.net",
 ];
 const styleSrcUrls = [
-  
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
   "https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css",
   "https://cdn.jsdelivr.net/npm/bootstrap@",
@@ -89,25 +110,24 @@ const connectSrcUrls = [
 const fontSrcUrls = [];
 app.use(
   helmet.contentSecurityPolicy({
-      directives: {
-          defaultSrc: [],
-          connectSrc: ["'self'", ...connectSrcUrls],
-          "scriptSrc": ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
-          "styleSrc": ["'self'", "'unsafe-inline'", ...styleSrcUrls],
-          workerSrc: ["'self'", "blob:"],
-          objectSrc: [],
-          imgSrc: [
-              "'self'",
-              "blob:",
-              "data:",
-              "https://res.cloudinary.com/doixzlwq0/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
-              "https://images.unsplash.com/",
-          ],
-          fontSrc: ["'self'", ...fontSrcUrls],
-      },
+    directives: {
+      defaultSrc: [],
+      connectSrc: ["'self'", ...connectSrcUrls],
+      scriptSrc: ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
+      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+      workerSrc: ["'self'", "blob:"],
+      objectSrc: [],
+      imgSrc: [
+        "'self'",
+        "blob:",
+        "data:",
+        "https://res.cloudinary.com/doixzlwq0/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT!
+        "https://images.unsplash.com/",
+      ],
+      fontSrc: ["'self'", ...fontSrcUrls],
+    },
   })
 );
-
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -127,7 +147,7 @@ app.use("/campgrounds", campgroundRoutes);
 app.use("/campgrounds/:id/reviews", reviewRoutes);
 
 app.get("/", (req, res) => {
-  console.log(req.query)
+  console.log(req.query);
   res.render("home");
 });
 
