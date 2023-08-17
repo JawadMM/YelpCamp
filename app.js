@@ -33,16 +33,11 @@ const store = MongoStore.create({
   },
 });
 
-store.on("error", function(error) {
-  console.log("Session Store Error", error)
-})
-
-mongoose.connect(dbUrl, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
+store.on("error", function (error) {
+  console.log("Session Store Error", error);
 });
+
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "Connection error:"));
